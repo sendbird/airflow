@@ -45,15 +45,17 @@ labels: {}
 # Ingress configuration
 ingress:
   # Enable ingress resource
-  enabled: false
+  enabled: true
 
   # Configs for the Ingress of the web Service
   web:
     # Annotations for the web Ingress
-    annotations: {}
+    annotations:
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/scheme: internet-facing
 
     # The path for the web Ingress
-    path: ""
+    path: "/*"
 
     # The hostname for the web Ingress
     host: ""
@@ -441,7 +443,7 @@ webserver:
   #   CSRF_ENABLED = True
 
   service:
-    type: ClusterIP
+    type: NodePort
     ## service annotations
     annotations: {}
 

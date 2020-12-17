@@ -31,7 +31,7 @@ metadata:
     heritage: {{ .Release.Service }}
   {{- with .Values.ingress.web.annotations }}
   annotations:
-  {{ toYaml . | indent 4 }}
+{{ toYaml . | indent 4}}
   {{- end }}
 spec:
   {{- if .Values.ingress.web.tls.enabled }}
