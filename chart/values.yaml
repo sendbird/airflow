@@ -344,7 +344,8 @@ workers:
   # when it wants to scale a node down.
   safeToEvict: true
   # Annotations to add to worker kubernetes service account.
-  serviceAccountAnnotations: {}
+  serviceAccountAnnotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::242864343139:role/dataplatform-airflow_local-apne1_dw-worker-role
   # Mount additional volumes into worker.
   extraVolumes: []
   extraVolumeMounts: []
@@ -379,7 +380,8 @@ scheduler:
   safeToEvict: true
 
   # Annotations to add to scheduler kubernetes service account.
-  serviceAccountAnnotations: {}
+  serviceAccountAnnotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::242864343139:role/dataplatform-airflow_local-apne1_dw-scheduler-role
 
   # Mount additional volumes into scheduler.
   extraVolumes: []
@@ -446,7 +448,8 @@ webserver:
     annotations: {}
 
   # Annotations to add to webserver kubernetes service account.
-  serviceAccountAnnotations: {}
+  serviceAccountAnnotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::242864343139:role/dataplatform-airflow_local-apne1_dw-webserver-role
 
 # Flower settings
 flower:
