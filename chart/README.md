@@ -17,7 +17,7 @@
  under the License.
  -->
 
-# Helm Chart for Apache Airflow
+# Helm Chart for Apache Airflow (version: 1.10.14)
 
 [Apache Airflow](https://airflow.apache.org/) is a platform to programmatically author, schedule and monitor workflows.
 
