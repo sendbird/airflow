@@ -227,8 +227,8 @@ data:
     pass: qnf815aofur!!!
     host: dataplatform-airflow-local-harley-dw-db.cluster-clpvirxkrsbm.us-west-2.rds.amazonaws.com
     port: 3306
-    db: main
-    sslmode: disable
+    db: four
+    sslmode: ~
   resultBackendConnection:
     user: postgres
     pass: postgres
