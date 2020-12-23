@@ -231,12 +231,13 @@ data:
 
   # Otherwise pass connection values in
   metadataConnection:
-    user: postgres
-    pass: postgres
-    host: ~
-    port: 5432
-    db: postgres
-    sslmode: disable
+    dbms: mysql
+    user: root
+    pass: qnf815aofur!!!
+    host: dataplatform-airflow-local-harley-dw-db.cluster-clpvirxkrsbm.us-west-2.rds.amazonaws.com
+    port: 3306
+    db: four
+    sslmode: ~
   resultBackendConnection:
     user: postgres
     pass: postgres
