@@ -110,12 +110,12 @@ def setup_kubeconfig(aws_region, airflow_type, cluster_name=None):
   return unified_name
 
 
-def deploy(region, aws_region, airflow_type, cluster_name, first_release):
+def deploy(region, aws_region, airflow_type, cluster_name):
   context_name = setup_kubeconfig(aws_region, airflow_type, cluster_name)
 
   exec_command(['kubectl config use-context {}'.format(context_name)])
-  exec_command(['helm {} airflow {} --namespace {}'.format(
-    'install' if first_release else 'upgrade', os.path.dirname(os.path.abspath(__file__)), region
+  exec_command(['helm upgrade -i airflow {} --namespace {}'.format(
+    os.path.dirname(os.path.abspath(__file__)), region
   )], timeout=600)
   print('Local chart has been deployed to the namespace: {} context: {}'.format(region, context_name))
 
@@ -129,8 +129,6 @@ def parse_args():
   parser.add_argument('--aws-region', '-r', action='store', required=False, help='AWS Region (e.g. ap-northeast-1)')
   parser.add_argument('--env', '-e', action='store', default='prod', help='AWS Environment to deploy',
                       choices=['prod', 'stg', 'dev'])
-  parser.add_argument('--first-release', '-f', action='store_true', default=False,
-                      help='Check if it is a first helm release.')
   args = parser.parse_args()
 
   if not args.aws_region:
@@ -152,7 +150,6 @@ def main():
       aws_region=args.aws_region,
       airflow_type=args.airflow_type,
       cluster_name=args.cluster_name,
-      first_release=args.first_release,
     )
 
 
