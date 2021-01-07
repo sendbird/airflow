@@ -411,6 +411,10 @@
                     "type": "object",
                     "additionalProperties": false,
                     "properties": {
+                        "dbms": {
+                            "description": "The dbms.",
+                            "type": "string"
+                        },
                         "user": {
                             "description": "The database user.",
                             "type": "string"
@@ -436,7 +440,10 @@
                         },
                         "sslmode": {
                             "description": "The database SSL parameter.",
-                            "type": "string"
+                            "type": [
+                                "string",
+                                "null"
+                            ]
                         }
                     }
                 },
