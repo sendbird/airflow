@@ -7,8 +7,8 @@ import subprocess
 from sendbird_common.regions import SB_REGION_TO_AWS_REGION
 
 KUBECONFIG_PATH = os.path.join(os.path.expanduser('~'), '.kube', 'config')
-CLUSTER_NAME_FORMAT = 'dataplatform-airflow_{airflow_type}-{region}-dw'
-
+# CLUSTER_NAME_FORMAT = 'dataplatform-airflow_{airflow_type}-{region}-dw'
+CLUSTER_NAME_FORMAT = 'dataplatformstaging-airflow-{airflow_type}'
 
 SHORTENED_AWS_REGIONS = {
   'us-east-1': 'use1',
@@ -29,7 +29,26 @@ ACCOUNT_IDS = {
   'prod': '012481551608',
 }
 
-aws_session = boto3.session.Session()
+aws_session = None
+
+
+def setup_boto3_session_assume_role(env):
+  account_id = ACCOUNT_IDS[env]
+
+  role_arn = 'arn:aws:iam::{account_id}:role/data-engineer-dataeng-{env}'\
+      .format(account_id=account_id, env=env)
+
+  sts_client = boto3.client('sts')
+  assumed_role = sts_client.assume_role(
+    RoleArn=role_arn, RoleSessionName='dataeng-{}'.format(env)
+  )
+
+  print(assumed_role)
+  return boto3.session.Session(
+    aws_access_key_id=assumed_role['Credentials']['AccessKeyId'],
+    aws_secret_access_key=assumed_role['Credentials']['SecretAccessKey'],
+    aws_session_token=assumed_role['Credentials']['SessionToken'],
+  )
 
 
 def exec_command(commands, timeout=3):
@@ -43,19 +62,21 @@ def exec_command(commands, timeout=3):
   print('`{}` has been succeed. output: {}'.format(commands, output))
 
 
-def setup_kubeconfig(aws_region, airflow_type, cluster_name=None):
+def setup_kubeconfig(aws_region, airflow_type, env, cluster_name=None):
   if not cluster_name:
     cluster_name = CLUSTER_NAME_FORMAT.format(airflow_type=airflow_type, region=SHORTENED_AWS_REGIONS[aws_region])
-  unified_name = '{}.{}.eksctl.io'.format(cluster_name, aws_region)
+  unified_name = 'arn:aws:eks:{aws_region}:{aws_account}:cluster/{cluster_name}'.format(
+    aws_region=aws_region, aws_account=ACCOUNT_IDS[env], cluster_name=cluster_name,
+  )
   configs = None
 
   if os.path.isfile(KUBECONFIG_PATH):
-    file = open('/Users/harley.son/.kube/config')
+    file = open(KUBECONFIG_PATH)
     configs = yaml.load(file, Loader=yaml.FullLoader)
 
   if configs:
     try:
-      if any(d['name'] == unified_name for d in configs['clusters']):
+      if any(cluster_name in d['name'] for d in configs['clusters']):
         print('The configuration for the cluster {} already exists.'.format(cluster_name))
         return unified_name
     except:
@@ -98,8 +119,13 @@ def setup_kubeconfig(aws_region, airflow_type, cluster_name=None):
     'user': {
       'exec': {
         'apiVersion': 'client.authentication.k8s.io/v1alpha1',
-        'command': 'aws-iam-authenticator',
-        "args": ["token", "-i", cluster_name]
+        'command': 'aws',
+        'args': [
+          '--region', aws_region,
+          'eks',
+          'get-token',
+          '--cluster-name', cluster_name
+        ]
       }
     }
   })
@@ -110,12 +136,12 @@ def setup_kubeconfig(aws_region, airflow_type, cluster_name=None):
   return unified_name
 
 
-def deploy(region, aws_region, airflow_type, cluster_name):
-  context_name = setup_kubeconfig(aws_region, airflow_type, cluster_name)
+def deploy(region, aws_region, airflow_type, cluster_name, env):
+  context_name = setup_kubeconfig(aws_region, airflow_type, env, cluster_name)
 
   exec_command(['kubectl config use-context {}'.format(context_name)])
-  exec_command(['helm upgrade -i airflow {} --namespace {}'.format(
-    os.path.dirname(os.path.abspath(__file__)), region
+  exec_command(['helm upgrade -i -f {} airflow {} --namespace {}'.format(
+    'values_{}.yaml'.format(region), os.path.dirname(os.path.abspath(__file__)), region
   )], timeout=600)
   print('Local chart has been deployed to the namespace: {} context: {}'.format(region, context_name))
 
@@ -131,25 +157,34 @@ def parse_args():
                       choices=['prod', 'stg', 'dev'])
   args = parser.parse_args()
 
-  if not args.aws_region:
-    try:
-      args.aws_region = SB_REGION_TO_AWS_REGION[args.region]
-    except KeyError:
-      raise argparse.ArgumentError('Cannot find AWS region from SendBird region. Specify <aws_region>')
-
   return args
 
 
 def main():
   args = parse_args()
 
+  try:
+    global aws_session
+    aws_session = setup_boto3_session_assume_role(env=args.env)
+  except Exception as e:
+    print("Unable to setup boto3 session: {}".format(e))
+    return
+
   print('Regions to deploy: {}'.format(args.region))
   for region in args.region:
+    aws_region = args.aws_region
+    if not aws_region:
+      try:
+        aws_region = SB_REGION_TO_AWS_REGION[region]
+      except KeyError:
+        raise argparse.ArgumentError('Cannot find AWS region from SendBird region. Specify <aws_region>')
+
     deploy(
       region=region,
-      aws_region=args.aws_region,
+      aws_region=aws_region,
       airflow_type=args.airflow_type,
       cluster_name=args.cluster_name,
+      env=args.env,
     )
 
 
