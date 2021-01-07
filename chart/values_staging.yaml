@@ -1,0 +1,9 @@
+data:
+  metadataConnection:
+    dbms: mysql
+    user: guest
+    pass: abcd123
+    host: dataplatformstaging-airflow-local-db.cluster-c8ygplmlteos.ap-northeast-2.rds.amazonaws.com
+    port: 3306
+    db: airflow
+    sslmode: ~
