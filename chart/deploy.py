@@ -141,7 +141,7 @@ def deploy(region, aws_region, airflow_type, cluster_name, env):
 
   exec_command(['kubectl config use-context {}'.format(context_name)])
   exec_command(['helm upgrade -i -f {} airflow {} --namespace {}'.format(
-    'values_{}.yaml'.format(region), os.path.dirname(os.path.abspath(__file__)), region
+    'values_{}.yaml'.format(region), os.path.dirname(os.path.abspath(__file__)), region,
   )], timeout=600)
   print('Local chart has been deployed to the namespace: {} context: {}'.format(region, context_name))
 
