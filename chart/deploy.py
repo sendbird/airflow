@@ -7,8 +7,7 @@ import subprocess
 from sendbird_common.regions import SB_REGION_TO_AWS_REGION
 
 KUBECONFIG_PATH = os.path.join(os.path.expanduser('~'), '.kube', 'config')
-# CLUSTER_NAME_FORMAT = 'dataplatform-airflow_{airflow_type}-{region}-dw'
-CLUSTER_NAME_FORMAT = 'dataplatformstaging-airflow-{airflow_type}'
+CLUSTER_NAME_FORMAT = 'dataplatform-airflow_{airflow_type}-{region}-dw'
 
 SHORTENED_AWS_REGIONS = {
   'us-east-1': 'use1',
@@ -43,7 +42,6 @@ def setup_boto3_session_assume_role(env):
     RoleArn=role_arn, RoleSessionName='dataeng-{}'.format(env)
   )
 
-  print(assumed_role)
   return boto3.session.Session(
     aws_access_key_id=assumed_role['Credentials']['AccessKeyId'],
     aws_secret_access_key=assumed_role['Credentials']['SecretAccessKey'],
