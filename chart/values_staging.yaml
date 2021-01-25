@@ -1,0 +1,15 @@
+ingress:
+  web:
+    annotations:
+      alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:232797014574:certificate/a74d9ef9-f4f2-4ebf-b6ee-04d42929b1ac
+    host: airflow-tmpstaging.dp-stg.sendbirdtest.com
+
+data:
+  metadataConnection:
+    dbms: mysql
+    user: guest
+    pass: abcd123
+    host: dataplatformstaging-airflow-local-db.cluster-c8ygplmlteos.ap-northeast-2.rds.amazonaws.com
+    port: 3306
+    db: airflow
+    sslmode: ~
