@@ -670,6 +670,13 @@ config:
     enable_proxy_fix: 'True'
     expose_config: 'True'
     rbac: 'True'
+    authenticate: 'True'
+    auth_backend: 'airflow.contrib.auth.backends.google_auth'
+  google:
+    client_id: ''
+    client_secret: ''
+    oauth_callback_route: '/oauth2callback'  # this doesn't have any effect if rbac is turned on
+    domain: 'sendbird.com'
 
   celery:
     default_queue: celery
