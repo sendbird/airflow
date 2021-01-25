@@ -1,0 +1,5 @@
+ingress:
+  web:
+    annotations:
+      alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:242864343139:certificate/e68ac952-e209-4c7e-9fd6-1bd0465617e9
+    host: airflow-central.dp-dev.sendbirdtest.com

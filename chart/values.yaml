@@ -31,7 +31,7 @@ airflowHome: "/opt/airflow"
 defaultAirflowRepository: apache/airflow
 
 # Default airflow tag to deploy
-defaultAirflowTag: 1.10.12
+defaultAirflowTag: 1.10.14
 
 
 # Select certain nodes for airflow pods.
@@ -45,15 +45,21 @@ labels: {}
 # Ingress configuration
 ingress:
   # Enable ingress resource
-  enabled: false
+  enabled: true
 
   # Configs for the Ingress of the web Service
   web:
     # Annotations for the web Ingress
-    annotations: {}
+    annotations:
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/certificate-arn: ""
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+      alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+      # the three annotations above enables TLS with ALB, without setting tls.enabled to true
 
     # The path for the web Ingress
-    path: ""
+    path: "/*"
 
     # The hostname for the web Ingress
     host: ""
@@ -66,7 +72,10 @@ ingress:
       secretName: ""
 
     # HTTP paths to add to the web Ingress before the default path
-    precedingPaths: []
+    precedingPaths:
+      - path: "/*"
+        serviceName: ssl-redirect
+        servicePort: use-annotation
 
     # Http paths to add to the web Ingress after the default path
     succeedingPaths: []
@@ -442,7 +451,7 @@ webserver:
   #   CSRF_ENABLED = True
 
   service:
-    type: ClusterIP
+    type: NodePort
     ## service annotations
     annotations: {}
 
@@ -661,6 +670,13 @@ config:
     enable_proxy_fix: 'True'
     expose_config: 'True'
     rbac: 'True'
+    authenticate: 'True'
+    auth_backend: 'airflow.contrib.auth.backends.google_auth'
+  google:
+    client_id: ''
+    client_secret: ''
+    oauth_callback_route: '/oauth2callback'  # this doesn't have any effect if rbac is turned on
+    domain: 'sendbird.com'
 
   celery:
     default_queue: celery
